@@ -9,18 +9,18 @@ from docx.oxml import OxmlElement
 def check_word_document(doc):
     checklist_data = {
         "Grading Criteria": [
-            "Is the font Times New Roman, 12pt?",
-            "Is line spacing set to double?",
-            "Are margins set to 1 inch on all sides?",
-            "Is the title on the title page centered and bold?",
-            "Is the title on the second page not bold?",
-            "Are the paragraphs left-aligned?",
-            "Are there at least 3 paragraphs?",
-            "Is there a References page?",
-            "Are in-text citations properly formatted?",
-            "Is there a title page?",
-            "Is the title page center aligned?",
-            "Are there page numbers in the top right?"
+            "1. Is the font Times New Roman, 12pt?",
+            "2. Is line spacing set to double?",
+            "3. Are margins set to 1 inch on all sides?",
+            "4. Is the title on the title page centered and bold?",
+            "5. Is the title on the second page not bold?",
+            "6. Are the paragraphs left-aligned?",
+            "7. Are there at least 3 paragraphs?",
+            "8. Is there a References page?",
+            "9. Are in-text citations properly formatted?",
+            "10. Is there a title page?",
+            "11. Is the title page center aligned?",
+            "12. Are there page numbers in the top right?"
         ],
         "Completed": []
     }
@@ -108,12 +108,6 @@ def check_word_document(doc):
         ) for section in doc.sections
     ) if doc.sections else False
     safe_append(has_page_numbers)
-
-    # **Ensure both lists are the same length**
-    while len(checklist_data["Completed"]) < len(checklist_data["Grading Criteria"]):
-        checklist_data["Completed"].append("No")
-    while len(checklist_data["Completed"]) > len(checklist_data["Grading Criteria"]):
-        checklist_data["Grading Criteria"].append("Unknown Criteria")
 
     return checklist_data
 
