@@ -72,10 +72,12 @@ def check_word_document(doc):
         if text.lower() == 'references':
             found_references = True
             continue
-        if header_done and not found_references and len(text) > 100 and not text.lower().startswith('in conclusion'):
+        if header_done and not found_references and len(text) > 100:
             body_paragraphs.append(text)
 
-    left_aligned = all(p.alignment in [WD_ALIGN_PARAGRAPH.LEFT, None] for p in doc.paragraphs if p.text.strip())
+    # Improved left-aligned paragraph detection (ignoring short headers/titles)
+    body_text_paragraphs = [p for p in doc.paragraphs if len(p.text.strip()) > 50]
+    left_aligned = all(p.alignment in [WD_ALIGN_PARAGRAPH.LEFT, None] for p in body_text_paragraphs)
     checklist_data["Completed"].append("Yes" if left_aligned else "No")
 
     sufficient_paragraphs = len(body_paragraphs) >= 3
