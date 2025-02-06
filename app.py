@@ -109,9 +109,11 @@ def check_word_document(doc):
     ) if doc.sections else False
     safe_append(has_page_numbers)
 
-    # Ensure lists have equal length
+    # **Ensure both lists are the same length**
     while len(checklist_data["Completed"]) < len(checklist_data["Grading Criteria"]):
         checklist_data["Completed"].append("No")
+    while len(checklist_data["Completed"]) > len(checklist_data["Grading Criteria"]):
+        checklist_data["Grading Criteria"].append("Unknown Criteria")
 
     return checklist_data
 
