@@ -75,7 +75,7 @@ def check_word_document(doc):
     header_done = False
     
     for p in doc.paragraphs:
-        text = p.text.strip()
+        text = p.text.strip() if p.text else ""
         if not text:
             continue
         if not header_done and len(text) > 100:
@@ -103,7 +103,7 @@ def check_word_document(doc):
     # Improved in-text citation check using regex
     citation_pattern = re.compile(r'\. \([A-Za-z]+, \d{4}\)')
     has_citations = any(
-        citation_pattern.search(p.text) for p in body_paragraphs
+        citation_pattern.search(p.text if p.text else "") for p in body_paragraphs
     )
     checklist_data["Completed"].append("Yes" if has_citations else "No")
 
@@ -116,7 +116,7 @@ def check_word_document(doc):
     checklist_data["Completed"].append("Yes" if title_page_centered else "No")
 
     # Check for page numbers in the top right corner of the header
-    has_page_numbers = any(
+    has_page_numbers = all(
         section.header and any(
             para.alignment == WD_ALIGN_PARAGRAPH.RIGHT and para.text.strip().isdigit()
             for para in section.header.paragraphs
