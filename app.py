@@ -16,7 +16,8 @@ def check_word_document(doc):
             "Is there a References page?",
             "Are in-text citations properly formatted?",
             "Is there a title page?",
-            "Is the title page center aligned?"
+            "Is the title page center aligned?",
+            "Are there page numbers in the top right?"
         ],
         "Completed": []
     }
@@ -52,11 +53,12 @@ def check_word_document(doc):
     )
     checklist_data["Completed"].append("Yes" if correct_margins else "No")
 
-    title_paragraph = doc.paragraphs[0] if doc.paragraphs else None
+    # Ensure title is first line of characters in document
+    first_non_empty_paragraph = next((p for p in doc.paragraphs if p.text.strip()), None)
     title_bold_centered = (
-        title_paragraph and 
-        title_paragraph.alignment == WD_ALIGN_PARAGRAPH.CENTER and
-        any(run.bold for run in title_paragraph.runs)
+        first_non_empty_paragraph and 
+        first_non_empty_paragraph.alignment == WD_ALIGN_PARAGRAPH.CENTER and
+        any(run.bold for run in first_non_empty_paragraph.runs)
     )
     checklist_data["Completed"].append("Yes" if title_bold_centered else "No")
 
@@ -110,6 +112,10 @@ def check_word_document(doc):
 
     title_page_centered = title_page_exists and all(p.alignment == WD_ALIGN_PARAGRAPH.CENTER for p in first_page_paragraphs)
     checklist_data["Completed"].append("Yes" if title_page_centered else "No")
+
+    # Check for page numbers in the top right corner
+    has_page_numbers = any(section.footer for section in doc.sections)
+    checklist_data["Completed"].append("Yes" if has_page_numbers else "No")
 
     return checklist_data
 
