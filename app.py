@@ -9,7 +9,8 @@ def check_word_document(doc):
             "Is the font Times New Roman, 12pt?",
             "Is line spacing set to double?",
             "Are margins set to 1 inch on all sides?",
-            "Is the title centered and not bold?",
+            "Is the title on the title page centered and bold?",
+            "Is the title on the second page not bold?",
             "Are the paragraphs left-aligned?",
             "Are there at least 3 paragraphs?",
             "Is there a References page?",
@@ -52,12 +53,19 @@ def check_word_document(doc):
     checklist_data["Completed"].append("Yes" if correct_margins else "No")
 
     title_paragraph = doc.paragraphs[0] if doc.paragraphs else None
-    title_centered = (
+    title_bold_centered = (
         title_paragraph and 
         title_paragraph.alignment == WD_ALIGN_PARAGRAPH.CENTER and
-        not any(run.bold for run in title_paragraph.runs)
+        any(run.bold for run in title_paragraph.runs)
     )
-    checklist_data["Completed"].append("Yes" if title_centered else "No")
+    checklist_data["Completed"].append("Yes" if title_bold_centered else "No")
+
+    second_page_title = doc.paragraphs[1] if len(doc.paragraphs) > 1 else None
+    title_not_bold = (
+        second_page_title and
+        not any(run.bold for run in second_page_title.runs)
+    )
+    checklist_data["Completed"].append("Yes" if title_not_bold else "No")
 
     body_paragraphs = []
     found_references = False
