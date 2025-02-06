@@ -18,13 +18,15 @@ def check_word_document(doc):
         "Completed": []
     }
 
+    # Retrieve document default font settings
+    default_font_name = doc.styles['Normal'].font.name
+    default_font_size = doc.styles['Normal'].font.size
+    assumed_font_size = Pt(12) if default_font_size is None else default_font_size
+
     def is_correct_font(paragraph):
-        paragraph_font = paragraph.style.font.name
-        paragraph_size = paragraph.style.font.size
-        
         for run in paragraph.runs:
-            run_font = run.font.name or paragraph_font
-            run_size = run.font.size or paragraph_size
+            run_font = run.font.name or default_font_name
+            run_size = run.font.size or assumed_font_size
             
             if run_font != 'Times New Roman' or run_size != Pt(12):
                 return False
