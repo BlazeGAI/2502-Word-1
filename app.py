@@ -76,7 +76,6 @@ def check_word_document(doc):
     ) if doc.sections else False
     safe_append(has_page_numbers)
 
-
     return checklist_data
 
 def display_results(checklist_data):
