@@ -67,12 +67,15 @@ def check_word_document(doc):
     safe_append(len(title_page_paragraphs) > 0 and all(len(p.text) < 100 for p in title_page_paragraphs))
     safe_append(title_page_paragraphs and all(p.alignment == WD_ALIGN_PARAGRAPH.CENTER for p in title_page_paragraphs))
 
-    has_page_numbers = all(
-        section.header and any(
-            para.alignment == WD_ALIGN_PARAGRAPH.RIGHT and para.text.strip().isdigit()
-            for para in section.header.paragraphs if para.text.strip()
-        ) for section in doc.sections
-    ) if doc.sections else False
+    # Restoring accurate page number check
+    has_page_numbers = False
+    for section in doc.sections:
+        header = section.header
+        if header:
+            for para in header.paragraphs:
+                if para.alignment == WD_ALIGN_PARAGRAPH.RIGHT and para.text.strip().isdigit():
+                    has_page_numbers = True
+                    break
     safe_append(has_page_numbers)
 
     return checklist_data
