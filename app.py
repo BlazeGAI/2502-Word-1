@@ -5,7 +5,6 @@ from docx.shared import Pt
 from docx.enum.text import WD_ALIGN_PARAGRAPH
 from docx.oxml import OxmlElement
 
-
 def check_word_document(doc):
     checklist_data = {
         "Grading Criteria": [
@@ -112,12 +111,13 @@ def check_word_document(doc):
     # Check for page numbers stored as PAGE fields in the header
     has_page_numbers = False
     for section in doc.sections:
-        if section.header:
-            for para in section.header.paragraphs:
-                for run in para.runs:
-                    for field in run._element.findall('.//w:fldSimple', namespaces={'w': 'http://schemas.openxmlformats.org/wordprocessingml/2006/main'}):
-                        if 'PAGE' in field.attrib.get('{http://schemas.openxmlformats.org/wordprocessingml/2006/main}instr', ''):
-                            has_page_numbers = True
+        header = section.header
+        if header and header._element:
+            for field in header._element.iter():
+                if field.tag.endswith('fldSimple') or field.tag.endswith('instrText'):
+                    if 'PAGE' in field.text:
+                        has_page_numbers = True
+                        break
     checklist_data["Completed"].append("Yes" if has_page_numbers else "No")
 
     return checklist_data
