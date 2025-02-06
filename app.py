@@ -3,6 +3,8 @@ import docx
 import re
 from docx.shared import Pt
 from docx.enum.text import WD_ALIGN_PARAGRAPH
+from docx.oxml import OxmlElement
+
 
 def check_word_document(doc):
     checklist_data = {
@@ -107,21 +109,15 @@ def check_word_document(doc):
     )
     checklist_data["Completed"].append("Yes" if has_citations else "No")
 
-    # Improved title page detection
-    first_page_paragraphs = [p for p in doc.paragraphs[:5] if p.text.strip()]
-    title_page_exists = len(first_page_paragraphs) > 0 and all(len(p.text) < 100 for p in first_page_paragraphs)
-    checklist_data["Completed"].append("Yes" if title_page_exists else "No")
-
-    title_page_centered = title_page_exists and all(p.alignment == WD_ALIGN_PARAGRAPH.CENTER for p in first_page_paragraphs)
-    checklist_data["Completed"].append("Yes" if title_page_centered else "No")
-
-    # Check for page numbers in the top right corner of the header
-    has_page_numbers = all(
-        section.header and any(
-            para.text.strip().isdigit() and int(para.text.strip()) == i + 1
-            for i, para in enumerate(section.header.paragraphs) if para.text.strip()
-        ) for i, section in enumerate(doc.sections)
-    )
+    # Check for page numbers stored as PAGE fields in the header
+    has_page_numbers = False
+    for section in doc.sections:
+        if section.header:
+            for para in section.header.paragraphs:
+                for run in para.runs:
+                    for field in run._element.findall('.//w:fldSimple', namespaces={'w': 'http://schemas.openxmlformats.org/wordprocessingml/2006/main'}):
+                        if 'PAGE' in field.attrib.get('{http://schemas.openxmlformats.org/wordprocessingml/2006/main}instr', ''):
+                            has_page_numbers = True
     checklist_data["Completed"].append("Yes" if has_page_numbers else "No")
 
     return checklist_data
