@@ -118,9 +118,9 @@ def check_word_document(doc):
     # Check for page numbers in the top right corner of the header
     has_page_numbers = all(
         section.header and any(
-            para.alignment == WD_ALIGN_PARAGRAPH.RIGHT and para.text.strip().isdigit()
-            for para in section.header.paragraphs if para.text.strip()
-        ) for section in doc.sections
+            para.text.strip().isdigit() and int(para.text.strip()) == i + 1
+            for i, para in enumerate(section.header.paragraphs) if para.text.strip()
+        ) for i, section in enumerate(doc.sections)
     )
     checklist_data["Completed"].append("Yes" if has_page_numbers else "No")
 
