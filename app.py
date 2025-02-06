@@ -70,11 +70,12 @@ def check_word_document(doc):
     # Page Number Check: Only in Header, Right-aligned
     def has_correct_page_numbers(doc):
         for section in doc.sections:
-            if section.header:
-                for para in section.header.paragraphs:
+            header = section.header
+            if header and header.is_linked_to_previous is False:
+                for para in header.paragraphs:
                     if para.alignment == WD_ALIGN_PARAGRAPH.RIGHT:
                         text_content = para.text.strip()
-                        if text_content.isdigit() or 'PAGE' in para._element.xml:
+                        if text_content.isdigit() or ('PAGE' in para._element.xml.upper() and 'NUMBER' in para._element.xml.upper()):
                             return True
         return False
 
