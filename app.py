@@ -70,11 +70,11 @@ def check_word_document(doc):
      
     # Improved Page Number Check
     has_page_numbers = any(
-        section.header and any(
-            para.alignment == WD_ALIGN_PARAGRAPH.RIGHT and para.text.strip().isdigit()
-            for para in section.header.paragraphs if para.text.strip()
-        )
-        for section in doc.sections
+    section.header and any(
+        (para.alignment == WD_ALIGN_PARAGRAPH.RIGHT and 
+         (para.text.strip().isdigit() or 'PAGE' in para._element.xml))
+        for para in section.header.paragraphs if para.text.strip() or 'PAGE' in para._element.xml
+        ) for section in doc.sections
     ) if doc.sections else False
     
     safe_append(has_page_numbers)
