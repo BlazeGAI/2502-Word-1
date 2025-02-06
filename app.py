@@ -10,10 +10,12 @@ def check_word_document(doc):
             "Is line spacing set to double?",
             "Are margins set to 1 inch on all sides?",
             "Is the title centered and not bold?",
-            "Are paragraphs properly indented?",
+            "Are the paragraphs left-aligned?",
             "Are there at least 3 paragraphs?",
             "Is there a References page?",
-            "Are in-text citations properly formatted?"
+            "Are in-text citations properly formatted?",
+            "Is there a title page?",
+            "Is the title page center aligned?"
         ],
         "Completed": []
     }
@@ -73,8 +75,8 @@ def check_word_document(doc):
         if header_done and not found_references and len(text) > 100 and not text.lower().startswith('in conclusion'):
             body_paragraphs.append(text)
 
-    proper_indentation = True  
-    checklist_data["Completed"].append("Yes" if proper_indentation else "No")
+    left_aligned = all(p.alignment in [WD_ALIGN_PARAGRAPH.LEFT, None] for p in doc.paragraphs if p.text.strip())
+    checklist_data["Completed"].append("Yes" if left_aligned else "No")
 
     sufficient_paragraphs = len(body_paragraphs) >= 3
     checklist_data["Completed"].append("Yes" if sufficient_paragraphs else "No")
@@ -90,6 +92,12 @@ def check_word_document(doc):
         for p in body_paragraphs
     )
     checklist_data["Completed"].append("Yes" if has_citations else "No")
+
+    title_page_exists = len(doc.paragraphs) > 1 and len(doc.paragraphs[0].text.strip()) > 0
+    checklist_data["Completed"].append("Yes" if title_page_exists else "No")
+
+    title_page_centered = title_page_exists and doc.paragraphs[0].alignment == WD_ALIGN_PARAGRAPH.CENTER
+    checklist_data["Completed"].append("Yes" if title_page_centered else "No")
 
     return checklist_data
 
