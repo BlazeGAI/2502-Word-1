@@ -1,5 +1,6 @@
 import streamlit as st
 import docx
+import re
 from docx.shared import Pt
 from docx.enum.text import WD_ALIGN_PARAGRAPH
 
@@ -99,9 +100,10 @@ def check_word_document(doc):
     )
     checklist_data["Completed"].append("Yes" if (has_references and references_content) else "No")
 
+    # Improved in-text citation check using regex
+    citation_pattern = re.compile(r'\. \([A-Za-z]+, \d{4}\)')
     has_citations = any(
-        '(' in p and ')' in p and any(str(year) in p for year in range(1900, 2025))
-        for p in body_paragraphs
+        citation_pattern.search(p.text) for p in body_paragraphs
     )
     checklist_data["Completed"].append("Yes" if has_citations else "No")
 
@@ -113,8 +115,13 @@ def check_word_document(doc):
     title_page_centered = title_page_exists and all(p.alignment == WD_ALIGN_PARAGRAPH.CENTER for p in first_page_paragraphs)
     checklist_data["Completed"].append("Yes" if title_page_centered else "No")
 
-    # Check for page numbers in the top right corner
-    has_page_numbers = any(section.footer for section in doc.sections)
+    # Check for page numbers in the top right corner of the header
+    has_page_numbers = any(
+        section.header and any(
+            para.alignment == WD_ALIGN_PARAGRAPH.RIGHT and para.text.strip().isdigit()
+            for para in section.header.paragraphs
+        ) for section in doc.sections
+    )
     checklist_data["Completed"].append("Yes" if has_page_numbers else "No")
 
     return checklist_data
