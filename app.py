@@ -84,7 +84,7 @@ def check_word_document(doc):
             found_references = True
             continue
         if header_done and not found_references and len(text) > 100:
-            body_paragraphs.append(text)
+            body_paragraphs.append(p)
 
     # Improved left-aligned paragraph detection (ignoring short headers/titles)
     body_text_paragraphs = [p for p in doc.paragraphs if len(p.text.strip()) > 50]
@@ -119,7 +119,7 @@ def check_word_document(doc):
     has_page_numbers = all(
         section.header and any(
             para.alignment == WD_ALIGN_PARAGRAPH.RIGHT and para.text.strip().isdigit()
-            for para in section.header.paragraphs
+            for para in section.header.paragraphs if para.text.strip()
         ) for section in doc.sections
     )
     checklist_data["Completed"].append("Yes" if has_page_numbers else "No")
