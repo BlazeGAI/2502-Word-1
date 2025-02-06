@@ -99,15 +99,13 @@ def check_word_document(doc):
         title_page_paragraphs and all(p.alignment == WD_ALIGN_PARAGRAPH.CENTER for p in title_page_paragraphs)
     )
 
-    has_page_numbers = False
-    for section in doc.sections:
-        header = section.header
-        if header and header._element:
-            for field in header._element.iter():
-                if field.tag.endswith('fldSimple') or field.tag.endswith('instrText'):
-                    if 'PAGE' in field.text:
-                        has_page_numbers = True
-                        break
+    # Improved page number detection: Ensure every section's header has a right-aligned numeral
+    has_page_numbers = all(
+        section.header and any(
+            para.alignment == WD_ALIGN_PARAGRAPH.RIGHT and para.text.strip().isdigit()
+            for para in section.header.paragraphs if para.text.strip()
+        ) for section in doc.sections
+    ) if doc.sections else False
     safe_append(has_page_numbers)
 
     return checklist_data
