@@ -93,10 +93,12 @@ def check_word_document(doc):
     )
     checklist_data["Completed"].append("Yes" if has_citations else "No")
 
-    title_page_exists = len(doc.paragraphs) > 1 and len(doc.paragraphs[0].text.strip()) > 0
+    # Improved title page detection
+    first_page_paragraphs = [p for p in doc.paragraphs[:5] if p.text.strip()]
+    title_page_exists = len(first_page_paragraphs) > 0 and all(len(p.text) < 100 for p in first_page_paragraphs)
     checklist_data["Completed"].append("Yes" if title_page_exists else "No")
 
-    title_page_centered = title_page_exists and doc.paragraphs[0].alignment == WD_ALIGN_PARAGRAPH.CENTER
+    title_page_centered = title_page_exists and all(p.alignment == WD_ALIGN_PARAGRAPH.CENTER for p in first_page_paragraphs)
     checklist_data["Completed"].append("Yes" if title_page_centered else "No")
 
     return checklist_data
