@@ -19,7 +19,7 @@ def check_word_document(doc):
             "Proper in-text citations",
             "Title page present",
             "Title page text: Center aligned",
-            "Page numbers: Top right"
+            "Page numbers: Top right in header"
         ],
         "Completed": []
     }
@@ -67,16 +67,18 @@ def check_word_document(doc):
     safe_append(len(title_page_paragraphs) > 0 and all(len(p.text) < 100 for p in title_page_paragraphs))
     safe_append(title_page_paragraphs and all(p.alignment == WD_ALIGN_PARAGRAPH.CENTER for p in title_page_paragraphs))
 
-     
-    # Improved Page Number Check
-    has_page_numbers = any(
-    section.header and any(
-        (para.alignment == WD_ALIGN_PARAGRAPH.RIGHT and 
-         (para.text.strip().isdigit() or 'PAGE' in para._element.xml))
-        for para in section.header.paragraphs if para.text.strip() or 'PAGE' in para._element.xml
-        ) for section in doc.sections
-    ) if doc.sections else False
-    
+    # Page Number Check: Only in Header, Right-aligned
+    def has_correct_page_numbers(doc):
+        for section in doc.sections:
+            if section.header:
+                for para in section.header.paragraphs:
+                    if para.alignment == WD_ALIGN_PARAGRAPH.RIGHT:
+                        text_content = para.text.strip()
+                        if text_content.isdigit() or 'PAGE' in para._element.xml:
+                            return True
+        return False
+
+    has_page_numbers = has_correct_page_numbers(doc)
     safe_append(has_page_numbers)
 
     return checklist_data
