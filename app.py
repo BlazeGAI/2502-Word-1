@@ -19,21 +19,15 @@ def check_word_1(doc):
     }
 
     def is_correct_font(paragraph):
-        """Check if the paragraph uses Times New Roman, 12pt font."""
-        try:
-            # Normalize font name comparison
-            for run in paragraph.runs:
-                # Check font name (case-insensitive and handles partial matches)
-                run_font = run.font.name or paragraph.style.font.name
-                if run_font and 'times new roman' not in run_font.lower():
-                    return False
-                
-                # Check font size with some tolerance
-                run_size = run.font.size or paragraph.style.font.size
-                if run_size is not None:
-                    # Allow small variations (e.g., ±0.5 points)
-                    if abs(run_size.pt - 12) > 0.5:
-                        return False
+        paragraph_font = paragraph.style.font.name
+        paragraph_size = paragraph.style.font.size
+
+        for run in paragraph.runs:
+            run_font = run.font.name or paragraph_font
+            run_size = run.font.size or paragraph_size
+
+            if run_font != 'Times New Roman' or run_size != Pt(12):
+                return False
         return True
 
     correct_font = all(is_correct_font(p) for p in doc.paragraphs if p.text.strip())
