@@ -25,9 +25,9 @@ def check_word_document(doc):
     }
 
     # Retrieve document default font settings
-    default_font_name = doc.styles['Normal'].font.name
-    default_font_size = doc.styles['Normal'].font.size
-    assumed_font_size = Pt(12) if default_font_size is None else default_font_size
+    default_font_name = doc.styles['Normal'].font.name if 'Normal' in doc.styles else "Times New Roman"
+    default_font_size = doc.styles['Normal'].font.size if 'Normal' in doc.styles else Pt(12)
+    assumed_font_size = default_font_size or Pt(12)
 
     def is_correct_font(paragraph):
         for run in paragraph.runs:
@@ -38,12 +38,12 @@ def check_word_document(doc):
                 return False
         return True
     
-    correct_font = all(is_correct_font(p) for p in doc.paragraphs if p.text.strip())
+    correct_font = all(is_correct_font(p) for p in doc.paragraphs if p.text.strip()) if doc.paragraphs else False
     checklist_data["Completed"].append("Yes" if correct_font else "No")
 
     correct_spacing = all(
         p.paragraph_format.line_spacing in [None, 2.0] for p in doc.paragraphs if p.text.strip()
-    )
+    ) if doc.paragraphs else False
     checklist_data["Completed"].append("Yes" if correct_spacing else "No")
 
     correct_margins = all(
@@ -52,7 +52,7 @@ def check_word_document(doc):
         section.top_margin.inches == 1 and
         section.bottom_margin.inches == 1
         for section in doc.sections
-    )
+    ) if doc.sections else False
     checklist_data["Completed"].append("Yes" if correct_margins else "No")
 
     # Ensure title is first line of characters in document
@@ -61,14 +61,14 @@ def check_word_document(doc):
         first_non_empty_paragraph and 
         first_non_empty_paragraph.alignment == WD_ALIGN_PARAGRAPH.CENTER and
         any(run.bold for run in first_non_empty_paragraph.runs)
-    )
+    ) if first_non_empty_paragraph else False
     checklist_data["Completed"].append("Yes" if title_bold_centered else "No")
 
     second_page_title = doc.paragraphs[1] if len(doc.paragraphs) > 1 else None
     title_not_bold = (
         second_page_title and
         not any(run.bold for run in second_page_title.runs)
-    )
+    ) if second_page_title else False
     checklist_data["Completed"].append("Yes" if title_not_bold else "No")
 
     body_paragraphs = []
@@ -88,24 +88,24 @@ def check_word_document(doc):
             body_paragraphs.append(p)
 
     # Improved left-aligned paragraph detection (ignoring short headers/titles)
-    body_text_paragraphs = [p for p in doc.paragraphs if len(p.text.strip()) > 50]
-    left_aligned = all(p.alignment in [WD_ALIGN_PARAGRAPH.LEFT, None] for p in body_text_paragraphs)
+    body_text_paragraphs = [p for p in doc.paragraphs if len(p.text.strip()) > 50] if doc.paragraphs else []
+    left_aligned = all(p.alignment in [WD_ALIGN_PARAGRAPH.LEFT, None] for p in body_text_paragraphs) if body_text_paragraphs else False
     checklist_data["Completed"].append("Yes" if left_aligned else "No")
 
     sufficient_paragraphs = len(body_paragraphs) >= 3
     checklist_data["Completed"].append("Yes" if sufficient_paragraphs else "No")
 
-    has_references = any(p.text.strip().lower() == 'references' for p in doc.paragraphs)
+    has_references = any(p.text.strip().lower() == 'references' for p in doc.paragraphs) if doc.paragraphs else False
     references_content = any(
         has_references and '(' in p.text and ')' in p.text for p in doc.paragraphs
-    )
+    ) if doc.paragraphs else False
     checklist_data["Completed"].append("Yes" if (has_references and references_content) else "No")
 
     # Improved in-text citation check using regex
     citation_pattern = re.compile(r'\. \([A-Za-z]+, \d{4}\)')
     has_citations = any(
         citation_pattern.search(p.text if p.text else "") for p in body_paragraphs
-    )
+    ) if body_paragraphs else False
     checklist_data["Completed"].append("Yes" if has_citations else "No")
 
     # Check for page numbers stored as PAGE fields in the header
