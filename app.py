@@ -1,9 +1,9 @@
 import streamlit as st
-from docx import Document
+import docx
 from docx.shared import Pt
 from docx.enum.text import WD_ALIGN_PARAGRAPH
 
-def check_word_1(doc):
+def check_word_document(doc):
     checklist_data = {
         "Grading Criteria": [
             "Is the font Times New Roman, 12pt?",
@@ -21,15 +21,15 @@ def check_word_1(doc):
     def is_correct_font(paragraph):
         paragraph_font = paragraph.style.font.name
         paragraph_size = paragraph.style.font.size
-
+        
         for run in paragraph.runs:
             run_font = run.font.name or paragraph_font
             run_size = run.font.size or paragraph_size
-
+            
             if run_font != 'Times New Roman' or run_size != Pt(12):
                 return False
         return True
-
+    
     correct_font = all(is_correct_font(p) for p in doc.paragraphs if p.text.strip())
     checklist_data["Completed"].append("Yes" if correct_font else "No")
 
@@ -58,7 +58,7 @@ def check_word_1(doc):
     body_paragraphs = []
     found_references = False
     header_done = False
-
+    
     for p in doc.paragraphs:
         text = p.text.strip()
         if not text:
@@ -71,7 +71,7 @@ def check_word_1(doc):
         if header_done and not found_references and len(text) > 100 and not text.lower().startswith('in conclusion'):
             body_paragraphs.append(text)
 
-    proper_indentation = True
+    proper_indentation = True  
     checklist_data["Completed"].append("Yes" if proper_indentation else "No")
 
     sufficient_paragraphs = len(body_paragraphs) >= 3
@@ -91,22 +91,14 @@ def check_word_1(doc):
 
     return checklist_data
 
-def main():
-    st.title("Word Document Checker")
+st.title("Word Document Grading Checklist")
 
-    uploaded_file = st.file_uploader("Upload a DOCX file", type=["docx"])
-    if uploaded_file is not None:
-        try:
-            doc = Document(uploaded_file)
-        except Exception as e:
-            st.error("Error processing the document. Verify the file is a valid DOCX file.")
-            return
+uploaded_file = st.file_uploader("Upload a .docx file", type=["docx"])
 
-        result = check_word_1(doc)
-
-        st.header("Checklist Results")
-        for criterion, status in zip(result["Grading Criteria"], result["Completed"]):
-            st.write(f"**{criterion}**: {status}")
-
-if __name__ == "__main__":
-    main()
+if uploaded_file:
+    doc = docx.Document(uploaded_file)
+    results = check_word_document(doc)
+    
+    st.subheader("Checklist Results")
+    for i, criterion in enumerate(results["Grading Criteria"]):
+        st.write(f"{criterion}: {results['Completed'][i]}")
